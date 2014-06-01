@@ -62,7 +62,8 @@ class JsonDecoder<String, T> extends Converter<String, T> {
 
     if (source is Map<String, dynamic>) {
       if (key != null) {
-        var declarations = type.declarations,
+        // var declarations = type.declarations,
+        var declarations = _getAllFields(type),
             declaration = declarations[declarations.keys.firstWhere((d) => MirrorSystem.getName(d) == key)] as VariableMirror;
 
         type = declaration.type;

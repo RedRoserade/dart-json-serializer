@@ -7,6 +7,10 @@ main() {
   var persons = [new Person('Another person', 45), new Person('Yet another person', 45)];
   p.persons.addAll(persons);
 
+  Student s = new Student('A Student', 10, 5);
+
+  p.persons.add(s);
+
   p.pets.addAll([new Pet('Pirolito', 10, 'Cat'), new Pet('Guida', 8, 'Cat')]);
   p.ints = [1,2,3,4,5];
 
@@ -25,6 +29,8 @@ main() {
   print(decodedPerson.name);
   print(decodedPerson.pets.map((p) => p.name).toList());
   print(decodedPerson.ints);
+
+  print((p.persons[2] as Student).grade);
 
   print(decodedPerson.tools.keys.map((k) => '$k: ${p.tools[k].title} with price ${p.tools[k].price}'));
 }

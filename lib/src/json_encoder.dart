@@ -62,7 +62,8 @@ class JsonEncoder<T, String> extends Converter<T, String> {
     Map result = {};
 
     var type = mirror.type,
-        declarations = type.declarations,
+        // declarations = type.declarations,
+        declarations = _getAllFields(type),
         vars = declarations.keys.where((d) => declarations[d] is VariableMirror).toList();
 
     //    if (!_allowPrivateFields) {

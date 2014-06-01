@@ -19,6 +19,13 @@ class Person {
   }
 }
 
+class Student extends Person {
+  int grade;
+
+  Student([String name, int age, this.grade]) : super(name, age);
+
+}
+
 class Pet {
   String name;
   int age;
