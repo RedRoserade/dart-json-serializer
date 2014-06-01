@@ -12,6 +12,7 @@ This codec supports nested object encoding and it can decode directly into a str
 
 ### Limitations
  * Unknown level of stability and efficiency;
+ * The decoding process will fail if there is no constructor with 0 required arguments;
  * On decoding, if the Map represents a subtype (i.e., it contains more fields), the supertype is created instead and the subtype values are lost;
  * Who knows what else!?
 
