@@ -4,13 +4,19 @@ A "Proof of Concept" reflection-based JSON serializing and deserializing library
 
 **WARNING**: This is merely a proof of concept and is not meant to be used in production. Who knows what can be improved and what bugs lie around?
 
-## Motivation
+### Motivation
 
 The supplied JSON Codec in `dart:convert` is quite limited. It can't, for example, encode nested objects, and the decoding process is a `Map` for more complex objects.
 
 This codec supports nested object encoding and it can decode directly into a strongly-typed object. Encoding (but not decoding) is supported for superclass fields.
 
-For example:
+### Limitations
+ * Unknown level of stability and efficiency;
+ * On decoding, if the Map represents a subtype (i.e., it contains more fields), the supertype is created instead and the subtype values are lost;
+ * Who knows what else!?
+
+
+### Example
 
 ```Dart
 class Person {
@@ -70,7 +76,42 @@ main() {
   var json = codec.encode(p);
 
   print(json);
-  // Yields {"name":"A Person","age":20,"pets":[{"name":"Garfield","age":5,"species":"Cat"}],"relatives":[{"name":"Another Person","age":45,"pets":[],"relatives":[]},{"grade":9,"name":"Another Person which is a Student","age":15,"pets":[],"relatives":[]}]}
+  /* Yields (output formatted for readability)
+  {
+    "name":"A Person",
+    "age":20,
+    "pets":[
+      {
+        "name":"Garfield",
+        "age":5,
+        "species":"Cat"
+      }
+    ],
+    "relatives":[
+      {
+        "name":"Another Person",
+        "age":45,
+        "pets":[
+  
+        ],
+        "relatives":[
+  
+        ]
+      },
+      {
+        "grade":9,
+        "name":"Another Person which is a Student",
+        "age":15,
+        "pets":[
+  
+        ],
+        "relatives":[
+  
+        ]
+      }
+    ]
+  }
+  */
 
   // Decode the string back into an object.
   var decodedPerson = codec.decode(json);
