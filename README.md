@@ -2,7 +2,7 @@
 
 A "Proof of Concept" reflection-based JSON serializing and deserializing library for Dart.
 
-**WARNING**: This is merely a proof of concept and is not meant to be used in production. Who knows what can be improved and what bugs lie around?
+**WARNING**: This is merely a proof of concept and is not meant to be used in production. Who knows what can be improved and what bugs lie around? Plus, I'm pretty sure that there are packages lying around which do this sort of thing much more efficiently.
 
 ### Motivation
 
