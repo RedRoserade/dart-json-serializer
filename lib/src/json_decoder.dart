@@ -55,6 +55,8 @@ class JsonDecoder<String, T> extends Converter<String, T> {
     if (source is List) {
       var typeArg = (type.declarations[new Symbol(key)] as VariableMirror).type.typeArguments[0];
 
+      if (typeArg is! ClassMirror) throw new SerializerException(source);
+
       return source.map((i) => _getValue(i, null, typeArg)).toList(growable: false);
     }
 
@@ -72,7 +74,7 @@ class JsonDecoder<String, T> extends Converter<String, T> {
         mirror = type.newInstance(new Symbol(''), []);
       } on Error {
         // We can't infer anything on 'dynamic'.
-        throw 'Impossible to determine the type of the object ${source} in which this is to be mapped to. In case the object is a generic (eg.: List), did you specify the type arguments?';
+        throw new SerializerException(source);
       }
 
       // If the field is a Map, we'll just assign the fields

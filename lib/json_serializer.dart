@@ -7,3 +7,4 @@ part 'src/json_codec.dart';
 part 'src/json_encoder.dart';
 part 'src/json_decoder.dart';
 part 'src/utils.dart';
+part 'src/exceptions.dart';
