@@ -6,8 +6,6 @@ bool _isFieldAtomic(r) => r is String || r is num || r is bool || r == null;
 Map<Symbol, VariableMirror> _getAllFields(ClassMirror m) {
   var vars = {};
 
-  // vars = _populateMapWithFields(vars, m);
-
   vars = _getSuperclassFields(m, vars);
 
   return vars;
@@ -23,8 +21,11 @@ Map _getSuperclassFields(ClassMirror m, Map<Symbol, VariableMirror> existingFiel
 }
 
 Map _populateMapWithFields(Map<Symbol, VariableMirror> fields, ClassMirror m) {
-  m.declarations.keys.where((k) => m.declarations[k] is VariableMirror)
-                     .forEach((k) => fields[k] = m.declarations[k]);
+  for (var k in m.declarations.keys) {
+    if (m.declarations[k] is VariableMirror) {
+      fields[k] = m.declarations[k];
+    }
+  }
 
   return fields;
 }

@@ -44,6 +44,7 @@ main() {
   // Instantiate the codec
   var codec = new JsonCodec<Person>();
 
+  // Create some dummy data
   var p = new Person('A Person', 20);
 
   p.pets.add(new Pet('Garfield', 5, 'Cat'));
@@ -62,11 +63,8 @@ main() {
   var decodedPerson = codec.decode(json);
 
   print(decodedPerson.relatives);
-  // Another Person is 45-years old.
-
-
-
+  // Yields [Another Person is 45-years old., Another Person which is a Student is 15-years old.]
 
   print(decodedPerson.pets);
-  // [Garfield is a 5-year old cat.]
+  // Yields [Garfield is a 5-year old cat.]
 }

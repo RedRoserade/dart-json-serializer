@@ -32,30 +32,41 @@ class JsonEncoder<T, String> extends Converter<T, String> {
    * If the field is an object or a map, then it's reflected
    * again and a Map is returned.
    */
-  _getValue(r) {
+  _getValue(instance) {
     // Test against String, num, bool or null.
-    if (_isFieldAtomic(r)) return r;
+    if (_isFieldAtomic(instance)) return instance;
 
     // Test against a list.
-    if (r is List) {
-      return r.map((i) => _getValue(i)).toList(growable: false);
-    }
+    if (instance is List) {
+      var result = new List(instance.length),
+          expectedType = reflect(instance).type.typeArguments[0];
 
-    if (r is Map<String, dynamic>) {
-      var result = {};
-
-      r.keys.forEach((k) => result[k] = _getValue(r[k]));
+      for (var i = 0; i < result.length; i++) {
+        result[i] = _getValue(instance[i]);
+      }
 
       return result;
     }
 
-    return _getFields(r);
+    if (instance is Map<String, Object>) {
+      var result = {};
+//      ,
+//          expectedType = reflect(instance).type.typeArguments[0];
+
+      for (var k in instance.keys) {
+        result[k] = _getValue(instance[k]);
+      }
+
+      return result;
+    }
+
+    return _getFields(instance);
   }
 
   /**
    * Gets the fields for an instance.
    */
-  Map _getFields(object) {
+  Map _getFields(object, [ClassMirror expectedType = null]) {
 
     InstanceMirror mirror = reflect(object);
 
@@ -64,21 +75,20 @@ class JsonEncoder<T, String> extends Converter<T, String> {
     var type = mirror.type,
         // declarations = type.declarations,
         declarations = _getAllFields(type),
-        vars = declarations.keys.where((d) => declarations[d] is VariableMirror).toList();
+        vars = [];
 
-    //    if (!_allowPrivateFields) {
-    //      vars = vars.where((d) => !declarations[d].isPrivate).toList();
-    //    }
-    //
-    //    if (_allowGetters) {
-    //      vars.addAll(declarations.
-    //          keys.where(
-    //              (d) => declarations[d] is MethodMirror && (declarations[d] as MethodMirror).isGetter));
-    //    }
+    for (var d in declarations.keys) {
+      if (declarations[d] is VariableMirror) {
+        vars.add(d);
+      }
+    }
 
-    vars.forEach((v) => result[MirrorSystem.getName(v)] = _getValue(mirror.getField(v).reflectee));
+    // TODO: Deal with subtypes...
+
+    for (var v in vars) {
+      result[MirrorSystem.getName(v)] = _getValue(mirror.getField(v).reflectee);
+    }
 
     return result;
   }
-
 }

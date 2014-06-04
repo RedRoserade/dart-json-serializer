@@ -1,3 +1,5 @@
+library models;
+
 class Person {
   final String SOME_CONSTANT = 'dowehf';
 

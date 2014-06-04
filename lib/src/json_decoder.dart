@@ -1,6 +1,6 @@
 part of json_serializer;
 
-/// Decodes a String into an object.
+/// Decodes a String into an instance of [T].
 class JsonDecoder<String, T> extends Converter<String, T> {
 
   ClassMirror _type;
@@ -10,22 +10,27 @@ class JsonDecoder<String, T> extends Converter<String, T> {
   }
 
   @override
-  T convert(input) {
+  T convert(String input) {
+    // I know I'm using the JSON codec. It works.
     var json = JSON.decode(input);
     var result;
 
     // Test against String, num, bool, or null.
-    if (_isFieldAtomic(json)) {
+    // If the reflected type is a Map, return a Map.
+    if (_isFieldAtomic(json) || _type.reflectedType is Map) {
       return json;
     }
 
     // If the Json is a list, we'll return
     // a List containing all the values of it.
     if (json is List) {
-      return json.map(_getValue);
-    }
+      var result = new List(json.length);
 
-    // We have a Map, and need to decode it.
+      for (var i = 0; i < json.length; i++) {
+        result[i] = _getValue(json[i]);
+      }
+      return result;
+    }
 
     // We can't instantiate abstract classes.
     if (_type.isAbstract) throw 'The type "${_type.reflectedType} is abstract.';
@@ -35,14 +40,18 @@ class JsonDecoder<String, T> extends Converter<String, T> {
     //       have explicit arguments.
     InstanceMirror mirror = _type.newInstance(new Symbol(''), []);
 
-    (json as Map).keys.forEach((String k) {
-      var s = new Symbol(k);
+    if (json is Map) {
+      for (var k in json.keys) {
+        var s = new Symbol(k);
 
-      // Only assign values to non-final fields.
-      if (!(_type.declarations[s] as VariableMirror).isFinal) {
-        mirror.setField(s, _getValue(json[k], k, _type));
+        if (!(_type.declarations[s] as VariableMirror).isFinal) {
+          mirror.setField(s, _getValue(json[k], k, _type));
+        }
       }
-    });
+
+    } else {
+      throw 'Unknown type';
+    }
 
     return mirror.reflectee;
   }
@@ -57,14 +66,25 @@ class JsonDecoder<String, T> extends Converter<String, T> {
 
       if (typeArg is! ClassMirror) throw new SerializerException(source);
 
-      return source.map((i) => _getValue(i, null, typeArg)).toList(growable: false);
+      var result = new List(source.length);
+
+      for (var i = 0; i < result.length; i++) {
+        result[i] = _getValue(source[i], null, typeArg);
+      }
+
+      return result;
     }
 
     if (source is Map<String, dynamic>) {
       if (key != null) {
-        // var declarations = type.declarations,
-        var declarations = _getAllFields(type),
-            declaration = declarations[declarations.keys.firstWhere((d) => MirrorSystem.getName(d) == key)] as VariableMirror;
+
+        var declarations = _getAllFields(type);
+
+        VariableMirror declaration = declarations[new Symbol(key)];
+
+        if (key == null) {
+          throw 'Unknown field $key';
+        }
 
         type = declaration.type;
       }
@@ -72,35 +92,40 @@ class JsonDecoder<String, T> extends Converter<String, T> {
       var mirror = null;
 
       try {
+        // TODO: This needs to allow constructors with parameters.
         mirror = type.newInstance(new Symbol(''), []);
       } on Error {
         // We can't infer anything on 'dynamic'.
+        // TODO: Perhaps return a Map?
         throw new SerializerException(source);
       }
 
       // If the field is a Map, we'll just assign the fields
       // directly to it.
       if (mirror.reflectee is Map) {
-        Map m = mirror.reflectee;
-        source.keys.forEach((k) {
-          var t = mirror.type.typeArguments[1];
+        var t = mirror.type.typeArguments[1];
 
+        Map m = mirror.reflectee;
+
+        for (var k in source.keys) {
+          // We'll attempt to get a value because the
+          // value may not be something as trivial as a String.
           m[k] = _getValue(source[k], null, t);
-        });
+        }
 
         return m;
       }
 
-      // We have an object.
-      source.keys.forEach((k) {
+      // We have a regular object.
+      for (var k in source.keys) {
         var s = new Symbol(k),
             declaration = type.declarations[s];
 
         // Do not assign values to final fields.
-        if (declaration != null && !(declaration as VariableMirror).isFinal) {
+        if (declaration != null && !declaration.isFinal) {
           mirror.setField(s, _getValue(source[k], k, type));
         }
-      });
+      }
 
       return mirror.reflectee;
     }
