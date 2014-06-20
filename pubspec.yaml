@@ -3,3 +3,5 @@ version: 0.1.0
 author: André Carvalho (redroserade)
 description: "Codec for serializing objects to JSON strings and JSON strings to strongly-typed\
   \ objects.\r\n\r\nWARNING: Not intended for production use."
+dependencies:
+  logging: any

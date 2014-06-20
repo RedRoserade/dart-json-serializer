@@ -1,18 +1,20 @@
 part of json_serializer;
 
 /// Decodes a String into an instance of [T].
-class JsonDecoder<String, T> extends Converter<String, T> {
+class JsonDeserializer<String, T> extends Converter<String, T> {
+  
+  final Logger _log = new Logger('JsonDeserializer');
 
   ClassMirror _type;
 
-  JsonDecoder() {
+  JsonDeserializer() {
     _type = reflect(this).type.typeArguments[1];
   }
 
   @override
   T convert(String input) {
-    // I know I'm using the JSON codec. It works.
     var json = JSON.decode(input);
+
     var result;
 
     // Test against String, num, bool, or null.
@@ -32,15 +34,24 @@ class JsonDecoder<String, T> extends Converter<String, T> {
       return result;
     }
 
-    // We can't instantiate abstract classes.
-    if (_type.isAbstract) throw 'The type "${_type.reflectedType} is abstract.';
+    // We have an object.
 
-    // Invoke the default construtor on the class.
-    // TODO: Probably make this more bullet-proof when constructors
-    //       have explicit arguments.
-    InstanceMirror mirror = _type.newInstance(new Symbol(''), []);
+    // We can't instantiate abstract classes.
+    if (_type.isAbstract) throw new AbstractFieldException(_type.reflectedType);
 
     if (json is Map) {
+
+      // Check for a "fromJson()" constructor method on the type.
+      try {
+        _log.finest('Attempting to use fromJson().');
+        return _type.newInstance(new Symbol('fromJson'), [json]).reflectee;
+      } on Error { 
+        /* No-op */
+        _log.finest('fromJson() unsuccessful.');
+      }
+
+      InstanceMirror mirror = _type.newInstance(new Symbol(''), []);
+
       for (var k in json.keys) {
         var s = new Symbol(k);
 
@@ -49,14 +60,15 @@ class JsonDecoder<String, T> extends Converter<String, T> {
         }
       }
 
-    } else {
-      throw 'Unknown type';
+      return mirror.reflectee;
+
     }
 
-    return mirror.reflectee;
+    // Should never happen...?
+    throw 'Unable to determine the type of the source object.';
   }
 
-  _getValue(source, [String key = null, ClassMirror type]) {
+  dynamic _getValue(Object source, [String key = null, ClassMirror type = null]) {
     // Test against String, num, bool or null.
     if (_isFieldAtomic(source)) return source;
 
@@ -96,7 +108,6 @@ class JsonDecoder<String, T> extends Converter<String, T> {
         mirror = type.newInstance(new Symbol(''), []);
       } on Error {
         // We can't infer anything on 'dynamic'.
-        // TODO: Perhaps return a Map?
         throw new SerializerException(source);
       }
 
@@ -129,5 +140,7 @@ class JsonDecoder<String, T> extends Converter<String, T> {
 
       return mirror.reflectee;
     }
+
+    return null;
   }
 }

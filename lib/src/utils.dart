@@ -11,7 +11,7 @@ Map<Symbol, VariableMirror> _getAllFields(ClassMirror m) {
   return vars;
 }
 
-Map _getSuperclassFields(ClassMirror m, Map<Symbol, VariableMirror> existingFields) {
+_getSuperclassFields(ClassMirror m, Map<Symbol, VariableMirror> existingFields) {
   while (m.superclass != null) {
     existingFields = _populateMapWithFields(existingFields, m);
 

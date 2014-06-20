@@ -13,7 +13,12 @@ class SerializerException {
 }
 
 class AbstractFieldException {
-  Type cause;
+  TypeMirror _cause;
+  
+  AbstractFieldException(this._cause);
 
-
+  @override
+  String toString() {
+    return 'AbstractFieldException: The type "$_cause" is abstract, and cannot be instantiated.';
+  }
 }
